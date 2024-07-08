@@ -10,8 +10,9 @@ from io import BytesIO
 import re
 
 # Process the frontmatter of the markdown file.
-def process_frontmatter(src_metadata, relative_file_path, site_aliases_dict, stats_dict ):
-    source_changed = False
+# TODO: converts tags with spaces to tags with hyphens
+def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_aliases_dict, stats_dict ):
+    source_changed = False      # Source data has not changed yet
 
     # Cleanup/Remove unimportant keys:
     for key in unimportant_frontmatter_keys:
@@ -43,24 +44,26 @@ def process_frontmatter(src_metadata, relative_file_path, site_aliases_dict, sta
 
 
     # Also add the last directory of the file path (not the filename) as an alias
-    split_path = relative_file_path.split('/')
+    split_path = rel_src_filepath.split('/')
     if split_path[-1] == 'index.md' or split_path[-1] == '_index.md':
-        # We are in a leaf directory if we have a parent:
+        # We are in a sub directory if we have a parent:
         if len(split_path) >= 2:
             # we have a parent: add the last directory of the file path (not the filename) as an alias
             main_slug = split_path[-2]
             post_collected_aliases.append(main_slug)
             stats_dict['slugs_collected'] += 1
+            print(f"  CONTENT SUBDIR - Adding last directory '{main_slug}' as an alias.")
         else:
             # no parent
             main_slug = None
     else:
-        # We are not in a leaf directory
+        # We have a file name, not an index.md file
         # Use the last part of the file path as the main slug
         # remove .md from the end of the folder_name
         main_slug = re.sub(r'\.md$', '', split_path[-1])
         post_collected_aliases.append(main_slug)
         stats_dict['slugs_collected'] += 1
+        print(f"  NAMED MD - Adding last directory '{main_slug}' as an alias.")
 
     # Also add the slug as an alias if it's different from the main slug extracted from the file path
     if 'slug' in src_metadata and str(src_metadata['slug']) != main_slug:
@@ -81,8 +84,8 @@ def process_frontmatter(src_metadata, relative_file_path, site_aliases_dict, sta
 
 
     # remove /_?index.md$ from the end of the canonical_uri:
-    # print( f"    Relative file path: {relative_file_path}")
-    canonical_uri = re.sub(r'/_?index\.md$', '/', '/'+relative_file_path)
+    # print( f"    Relative file path: {rel_dest_filepath}")
+    canonical_uri = re.sub(r'/_?index\.md$', '/', '/'+rel_dest_filepath)
     # print( f"    canonical_uri: {canonical_uri}")
     # If there is still a trailing .md, remove it (can happen for search.md for example)
     canonical_uri = re.sub(r'\.md$', '/', canonical_uri)
@@ -147,7 +150,7 @@ def extract_links(content, file_path):
 
 
 # Process a single markdown file:
-def process_file(file_path, relative_file_path, dest_root, site_aliases_dict, stats_dict):
+def process_file(file_path, rel_src_filepath, dest_root, site_aliases_dict, stats_dict):
 
     stats_dict['source_md_files'] += 1
 
@@ -155,11 +158,31 @@ def process_file(file_path, relative_file_path, dest_root, site_aliases_dict, st
     post = frontmatter.load(file_path)
     print( f"  Title: {post['title']}")
 
+    # DESTINATION PATH:
+
+    # Check if the filename ends in _?index.md or search.md
+    if re.search(r'(/|^)(_?index|search)\.md$', rel_src_filepath):
+        rel_dest_filepath = rel_src_filepath
+        print(f"  ALREADY INDEX - keep as is: {rel_dest_filepath}")
+    else:
+        print(f"  NOT INDEX.MD...")
+        # Get the filename without the extension
+        filename_base = re.sub(r'\.md$', '', os.path.basename(rel_src_filepath))
+        # Get the last directory from the path
+        lastlevel_dir = os.path.basename(os.path.dirname(rel_src_filepath))
+        if filename_base == lastlevel_dir:
+            rel_dest_filepath = os.path.join( os.path.dirname(rel_src_filepath), 'index.md')
+            print(f"  FILE == DIR - keep only one: {rel_dest_filepath}")
+        else:
+            # Need to make a leaf directory with index.md
+            rel_dest_filepath = re.sub(r'\.md$', '/index.md', rel_src_filepath)
+            print(f"  FILE != DIR - Make new leaf directory: {rel_dest_filepath}")
+
     # Process the frontmatter
-    source_changed = process_frontmatter(post.metadata, relative_file_path, site_aliases_dict, stats_dict)
+    source_changed = process_frontmatter(post.metadata, rel_src_filepath, rel_dest_filepath, site_aliases_dict, stats_dict)
 
     # Extract and print links from the content and update the content
-    new_src_content, new_hugo_content = extract_links(post.content, relative_file_path )
+    new_src_content, new_hugo_content = extract_links(post.content, rel_src_filepath )
     if new_src_content != post.content:
          post.content = new_src_content
          source_changed = True
@@ -180,15 +203,8 @@ def process_file(file_path, relative_file_path, dest_root, site_aliases_dict, st
     # Save the new Hugo content to the destination path
     post.content = new_hugo_content
 
-    # Create destination path
-    dest_file_path = os.path.join(dest_root, relative_file_path)
 
-    # Check if the filename ends in _?index.md or search.md
-    if not re.search(r'(/|^)(_?index|search)\.md$', relative_file_path):
-        # Need to make a leaf directory with index.md
-        dest_file_path = re.sub(r'\.md$', '/index.md', dest_file_path)
-        # Need to make sure directory exists:
-
+    dest_file_path = os.path.join(dest_root, rel_dest_filepath)
     # Check if we need to create the directory:
     dest_dir = os.path.dirname(dest_file_path)
     if not os.path.exists(dest_dir):
@@ -218,7 +234,8 @@ def process_directory(source_directory, destination_directory, site_aliases_dict
 
         print()
         print()
-        print(f"Processing directory: {root} ... files:{files} ... subdirs: {dirs} ...");
+        # print(f"Processing directory: {root} ... files:{files} ... subdirs: {dirs} ...")
+        print(f"Processing directory: {root} ... ")
 
         if cur_dirname == '_assets':
             # Copy the _assets directory to the destination

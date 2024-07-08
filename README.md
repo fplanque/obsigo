@@ -42,7 +42,8 @@ Obsigo will do the following actions:
 - Collect slugs & aliases from frontmatter `aliases:`, `slug:`, the filename`.md` or the folder_name`/index.md`
   - Generate foreverlinks from the above and save them to a Netlify-compatible `_redirects` file
   - Also add additional customs redirects from `_redirects_base.txt` (if it exists)
-- Converting obsidian `/cat/pagename.md` to hugo `/cat/pagename/index.md`
+- Converting obsidian `/xyz/pagename.md` to hugo `/xyz/pagename/index.md`
+- Converting obsidian `/xyz/leaf-node/leaf-node.md` to hugo `/xyz/leaf-node/index.md`
 - Automatically handle renamed files. If `/cat/oldname.md` becomes `/cat/newname.md`, obsigo will detect it because the
   frontmatter `slug:` will still be `oldname`. At that point, obsigo will add `oldname` to the frontmatter `aliases:`
   and will change he frontmatter `slug:` to `newname`. (This will, as any alias, generate a foreverlink from `*/oldname` to `/cat/newname`.
