@@ -51,6 +51,9 @@ Obsigo will do the following actions:
 ### Content
 
 - Convert Obsidian-style markup to Hugo-style:
+  - Internal links:
+    - `.../xyz/index.md` -> `.../xyz/`
+    - `.../xyz/leaf-node/leaf-node.md` -> `.../xyz/leaf-node/`
   - YouTube links:
     - `![TED Talk](https://www.youtube.com/watch?v=M0yhHKWUa0g)` -> `{{< youtube M0yhHKWUa0g >}}`
     - `![TED Talk](https://youtu.be/M0yhHKWUa0g)` -> `{{< youtube M0yhHKWUa0g >}}`

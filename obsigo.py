@@ -110,7 +110,7 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
 
 
 # Extract and print all links from the markdown content:
-def extract_links(content, file_path):
+def process_links(content, file_path):
     # Initialize the Hugo content with the original content
     hugo_content = content
 
@@ -118,21 +118,35 @@ def extract_links(content, file_path):
     if markdown_links:
         print(f"  MD Links found in {file_path}:")
         for match in markdown_links:
-            print(f"    - {match[0]}")
+            full_md_link, link_text, link_url = match
+            print(f"    - {full_md_link}")
 
             # Check if the link is a YouTube embed and convert to Hugo tag
-            if match[0].startswith('!') and ('youtube.com/watch' in match[2] or 'youtu.be/' in match[2]):
-                youtube_id = re.findall(r'(?:https?://(?:www\.)?youtube\.com/watch\?v=|https?://youtu\.be/)([\w-]+)', match[2])
+            if full_md_link.startswith('!') and ('youtube.com/watch' in link_url or 'youtu.be/' in link_url):
+                youtube_id = re.findall(r'(?:https?://(?:www\.)?youtube\.com/watch\?v=|https?://youtu\.be/)([\w-]+)', link_url)
                 if youtube_id:
                     hugo_tag = f'{{{{< youtube {youtube_id[0]} >}}}}'
                     print(f"      - Converting YouTube link to Hugo tag: {hugo_tag}")
-                    hugo_content = hugo_content.replace(match[0], hugo_tag)
+                    hugo_content = hugo_content.replace(full_md_link, hugo_tag)
                     stats_dict['youtube_links_converted'] += 1
 
             # Check if the link ends in index.md and remove it
-            elif match[2].endswith('/index.md'):
+            elif link_url.endswith('/index.md'):
                 print(f"      - Removing 'index.md' from the link")
-                hugo_content = hugo_content.replace(match[0], f"[{match[1]}]({match[2].replace('/index.md', '/')})")
+                hugo_content = hugo_content.replace(full_md_link, f"[{match[1]}]({link_url.replace('/index.md', '/')})")
+                stats_dict['links_removed_index.md'] += 1
+
+            else:
+                # TODO: check if the link repeats the filename like /xyz/filename/filename.md
+                # print( f"      - Checking for repeated filename in link: {link_url}")
+                parts = link_url.split('/')
+                if len(parts) >= 2 and parts[-1] == parts[-2]+".md":
+                    print( f"        - Repeated filename found: {parts[-1]}")
+                    # remove the last part
+                    new_link_url = '/'.join(parts[:-1])+ '/'
+                    print( f"        - New link: {new_link_url}")
+                    hugo_content = hugo_content.replace(full_md_link, f"[{match[1]}]({new_link_url})")
+                    stats_dict['links_removed_duplicate_filename.md'] += 1
 
     # Find HTML links
     # html_links = re.findall(r'(<a\s+(?:[^>]*?\s+)?href=(["\'])(.*?)\2>(.*?)<\/a>)', content)
@@ -144,7 +158,7 @@ def extract_links(content, file_path):
             markdown_link = f"[{match[3]}]({match[2]})"
             print(f"      - MD equiv: {markdown_link}")
             # replace in the content
-            # content = content.replace(match[0], markdown_link)
+            # content = content.replace(full_md_link, markdown_link)
 
     return content, hugo_content
 
@@ -182,7 +196,7 @@ def process_file(file_path, rel_src_filepath, dest_root, site_aliases_dict, stat
     source_changed = process_frontmatter(post.metadata, rel_src_filepath, rel_dest_filepath, site_aliases_dict, stats_dict)
 
     # Extract and print links from the content and update the content
-    new_src_content, new_hugo_content = extract_links(post.content, rel_src_filepath )
+    new_src_content, new_hugo_content = process_links(post.content, rel_src_filepath )
     if new_src_content != post.content:
          post.content = new_src_content
          source_changed = True
@@ -293,6 +307,9 @@ if __name__ == "__main__":
         'slugs_collected': 0,
         'divergent_slugs_fixed': 0, # Old slug becomes an alias and filename becomes new slug
         'foreverlinks_collected': 0,
+        'foreverlinks_conflicts_detected': "TODO",  # TODO
+        'links_removed_index.md': 0,
+        'links_removed_duplicate_filename.md': 0
     }
 
     process_directory( source_directory, destination_directory, site_aliases_dict, stats_dict )
