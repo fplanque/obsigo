@@ -40,6 +40,7 @@ Obsigo will do the following actions:
 - Cleanup/Remove unimportant keys from your FrontMatter YAML (IMPORTANT: these changes will be written back 
   to the source directory!)
 - Collect slugs & aliases from frontmatter `aliases:`, `slug:`, the filename`.md` or the folder_name`/index.md`
+  - Detect duplicates in the above!
   - Generate foreverlinks from the above and save them to a Netlify-compatible `_redirects` file
   - Also add additional customs redirects from `_redirects_base.txt` (if it exists)
 - Converting obsidian `/xyz/pagename.md` to hugo `/xyz/pagename/index.md`

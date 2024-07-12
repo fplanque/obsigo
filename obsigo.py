@@ -100,6 +100,7 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
 
         if alias in site_aliases_dict:
             print(f"!!!WARNING!!! Alias '{alias}' already exists in the dictionary.")
+            stats_dict['foreverlinks_conflicts_detected'] += 1
         else:
             site_aliases_dict[alias] = canonical_uri
             print(f"  Added alias {alias}->{canonical_uri} to the dictionary.")
@@ -307,7 +308,7 @@ if __name__ == "__main__":
         'slugs_collected': 0,
         'divergent_slugs_fixed': 0, # Old slug becomes an alias and filename becomes new slug
         'foreverlinks_collected': 0,
-        'foreverlinks_conflicts_detected': "TODO",  # TODO
+        'foreverlinks_conflicts_detected': 0,
         'links_removed_index.md': 0,
         'links_removed_duplicate_filename.md': 0
     }
