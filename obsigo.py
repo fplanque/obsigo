@@ -30,6 +30,10 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
         source_changed = True
         stats_dict['frontmatter_source_cleanups'] += 1
 
+    if 'draft' in src_metadata:
+        draft = src_metadata['draft']
+    else:
+        draft = False
 
     # Collect aliases:
     if 'aliases' in src_metadata:
@@ -102,9 +106,12 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
             print(f"!!!WARNING!!! Alias '{alias}' already exists in the dictionary.")
             stats_dict['foreverlinks_conflicts_detected'] += 1
         else:
-            site_aliases_dict[alias] = canonical_uri
-            print(f"  Added alias {alias}->{canonical_uri} to the dictionary.")
-            stats_dict['foreverlinks_collected'] += 1
+            if draft:
+                print(f"  NOT ADDING alias {alias}->{canonical_uri} because it's a draft.")
+            else:
+                site_aliases_dict[alias] = canonical_uri
+                print(f"  Added alias {alias}->{canonical_uri} to the dictionary.")
+                stats_dict['foreverlinks_collected'] += 1
 
     return source_changed
 
