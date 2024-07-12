@@ -171,7 +171,8 @@ def process_file(file_path, rel_src_filepath, dest_root, site_aliases_dict, stat
 
     # Load the file with frontmatter lib:
     post = frontmatter.load(file_path)
-    print( f"  Title: {post['title']}")
+    if "title" in post:
+        print( f"  Title: {post['title']}")
 
     # DESTINATION PATH:
 
