@@ -1,0 +1,13 @@
+# Example Obsigo config file:
+# Duplicate this and put it into your hugo project root directory as obsigo.yaml
+source_directory: "./content_src"
+destination_directory: "./content"
+src_redirects_base_file: "./_redirects_base.txt"
+dest_redirects_file: "./static/_redirects"
+unimportant_frontmatter_keys:
+  - dateset
+  - priority
+  - addvotes
+  - countvotes
+  - notifications-flags
+  - lastedit-user

@@ -9,6 +9,10 @@ import frontmatter
 from io import BytesIO
 import re
 
+import yaml
+
+
+
 # Process the frontmatter of the markdown file.
 # TODO: converts tags with spaces to tags with hyphens
 def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_aliases_dict, stats_dict ):
@@ -285,13 +289,21 @@ def process_directory(source_directory, destination_directory, site_aliases_dict
 
 
 if __name__ == "__main__":
-    source_directory = "./content_src"
-    destination_directory = "./content"
-    src_redirects_base_file = "./_redirects_base.txt"
-    dest_redirects_file = "./static/_redirects"
-    unimportant_frontmatter_keys = ['dateset', 'priority', 'addvotes', 'countvotes', 'notifications-flags', 'lastedit-user']
 
-    # all of the above should be real from obsigo.yaml instead of hardcoded:
+    # Load config
+    config_file = "./obsigo.yaml"
+    if not os.path.exists(config_file):
+        print(f"Configuration file '{config_file}' does not exist.")
+        exit(1)
+    with open(config_file, 'r') as file:
+        config = yaml.safe_load(file)
+
+    source_directory = config['source_directory']
+    destination_directory = config['destination_directory']
+    src_redirects_base_file = config['src_redirects_base_file']
+    dest_redirects_file = config['dest_redirects_file']
+    unimportant_frontmatter_keys = config['unimportant_frontmatter_keys']
+
 
 
 
