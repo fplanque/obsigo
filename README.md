@@ -45,6 +45,7 @@ Obsigo will do the following actions:
   - Also add additional customs redirects from `_redirects_base.txt` (if it exists)
 - Converting obsidian `/xyz/pagename.md` to hugo `/xyz/pagename/index.md`
 - Converting obsidian `/xyz/leaf-node/leaf-node.md` to hugo `/xyz/leaf-node/index.md`
+- Automatically add missing `slug:` to frontmatter (base on filename or foldername)
 - Automatically handle renamed files. If `/cat/oldname.md` becomes `/cat/newname.md`, obsigo will detect it because the
   frontmatter `slug:` will still be `oldname`. At that point, obsigo will add `oldname` to the frontmatter `aliases:`
   and will change he frontmatter `slug:` to `newname`. (This will, as any alias, generate a foreverlink from `*/oldname` to `/cat/newname`.

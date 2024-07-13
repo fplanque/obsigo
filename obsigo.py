@@ -39,6 +39,8 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
     else:
         draft = False
 
+    # ---
+
     # Collect aliases:
     if 'aliases' in src_metadata:
         # Make a copy of the aliases
@@ -49,10 +51,11 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
         stats_dict['aliases_collected'] += len(post_collected_aliases)
     else:
         post_collected_aliases = []
-
+    # print(f"  Collected Aliases: {post_collected_aliases}")
 
     # Also add the last directory of the file path (not the filename) as an alias
     split_path = rel_src_filepath.split('/')
+    print( f"  Split path: {split_path} {len(split_path)}")
     if split_path[-1] == 'index.md' or split_path[-1] == '_index.md':
         # We are in a sub directory if we have a parent:
         if len(split_path) >= 2:
@@ -65,16 +68,35 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
             # no parent
             main_slug = None
     else:
-        # We have a file name, not an index.md file
+        # We have a file name, not an `index.md` file
         # Use the last part of the file path as the main slug
         # remove .md from the end of the folder_name
+        # Can be an article, can also be search.md
         main_slug = re.sub(r'\.md$', '', split_path[-1])
         post_collected_aliases.append(main_slug)
         stats_dict['slugs_collected'] += 1
         print(f"  NAMED MD - Adding last directory '{main_slug}' as an alias.")
 
-    # Also add the slug as an alias if it's different from the main slug extracted from the file path
-    if 'slug' in src_metadata and str(src_metadata['slug']) != main_slug:
+    print(f"  Main slug: {main_slug}" )
+    print(f"  Collected Aliases: {post_collected_aliases}")
+
+    # --
+
+    # Fix 'slug:' in source if necessary:
+    if main_slug is None:
+        # root _index.md, do nothing
+        print( "    Home page, no slug needed.")
+        pass
+
+    elif 'slug' not in src_metadata:
+        # No 'slug', let's add it:
+        print(f"    Adding missing slug to source: '{main_slug}'")
+        src_metadata['slug'] = main_slug
+        source_changed = True
+        stats_dict['missing_slugs_fixed'] += 1
+
+    elif str(src_metadata['slug']) != main_slug:
+        # Also add the slug as an alias if it's different from the main slug extracted from the file path
         # DIVERGENT slug found!
         # We need to roll the slugs:
         print(f"    Divergent slugs found: '{src_metadata['slug']}' != '{main_slug}'")
@@ -90,6 +112,9 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
         src_metadata['slug'] = main_slug
         source_changed = True
 
+    # ---
+
+    # Build page URI:
 
     # remove /_?index.md$ from the end of the canonical_uri:
     # print( f"    Relative file path: {rel_dest_filepath}")
@@ -99,6 +124,7 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
     canonical_uri = re.sub(r'\.md$', '/', canonical_uri)
     # print( f"    canonical_uri: {canonical_uri}")
 
+    # Build redirects: (site aliases)
 
     for alias in post_collected_aliases:
         # Make sure alias is a string
@@ -327,6 +353,7 @@ if __name__ == "__main__":
         'aliases_collected': 0,
         'slugs_collected': 0,
         'divergent_slugs_fixed': 0, # Old slug becomes an alias and filename becomes new slug
+        'missing_slugs_fixed': 0,   # Missing slug added to source
         'foreverlinks_collected': 0,
         'foreverlinks_conflicts_detected': 0,
         'links_removed_index.md': 0,
