@@ -240,6 +240,17 @@ def process_file(file_path, rel_src_filepath, dest_root, site_aliases_dict, stat
          post.content = new_src_content
          source_changed = True
 
+    # Check if the filename is a bland index.md
+    if re.search(r'/index\.md$', rel_src_filepath):
+        print(f"  BLAND index.md - Renaming to to slug: {post.metadata['slug']}.md")
+        # Rename the file to the slug
+        new_filename = str(post.metadata['slug']) + '.md'
+        new_file_path = os.path.join(os.path.dirname(file_path), new_filename)
+        print(f"  Renaming file: {file_path} -> {new_file_path}")
+        os.rename(file_path, new_file_path)
+        stats_dict['index_md_files_renamed'] += 1
+
+
     # Save the modified source file only if changes were made
     if not source_changed:
         print("  SOURCE unchanged.")
@@ -352,6 +363,7 @@ if __name__ == "__main__":
         'youtube_links_converted': 0,
         'aliases_collected': 0,
         'slugs_collected': 0,
+        'index_md_files_renamed': 0,  # index.md files renamed to slug.md
         'divergent_slugs_fixed': 0, # Old slug becomes an alias and filename becomes new slug
         'missing_slugs_fixed': 0,   # Missing slug added to source
         'foreverlinks_collected': 0,

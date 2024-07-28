@@ -49,6 +49,7 @@ Obsigo will do the following actions:
 - Automatically handle renamed files. If `/cat/oldname.md` becomes `/cat/newname.md`, obsigo will detect it because the
   frontmatter `slug:` will still be `oldname`. At that point, obsigo will add `oldname` to the frontmatter `aliases:`
   and will change he frontmatter `slug:` to `newname`. (This will, as any alias, generate a foreverlink from `*/oldname` to `/cat/newname`.
+- Automatically rename source files from `index.md` to `slug.md` so that your source files are easier to identify in search results.
 
 ### Content
 
