@@ -11,7 +11,7 @@ import re
 
 import yaml
 
-
+print("Obsigo v0.5 - Preprocess Obsidian markdown files for Hugo")
 
 # Process the frontmatter of the markdown file.
 # TODO: converts tags with spaces to tags with hyphens
@@ -236,6 +236,12 @@ def process_file(file_path, rel_src_filepath, dest_root, site_aliases_dict, stat
 
     # Extract and print links from the content and update the content
     new_src_content, new_hugo_content = process_links(post.content, rel_src_filepath )
+
+    # Replace ` # ` with ` \# ` in the destination content only (otherwise Hugo will try to render h1s
+    # in case of bullet lists entries like '- # of sectors per track')
+    new_hugo_content = re.sub(r' # ', r' \# ', new_hugo_content)
+
+    # Check if the source content has changed
     if new_src_content != post.content:
          post.content = new_src_content
          source_changed = True
