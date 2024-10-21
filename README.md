@@ -1,11 +1,9 @@
-# obsigo - Obsidian to hugo bridge
+# obsigo v0.2 - Obsidian to hugo bridge
 
 A converter/bridge from **[Obsidian](https://obsidian.md)** to **[Hugo](https://gohugo.io)** for Static Website Generation, 
 including **foreverlinks** redirects for **[Netlify](https://www.netlify.com)**.
 
 This is super-niche but if you are going to use Obsidian + Hugo + Netlify, this will save you so much time you'll want to hug me ;)  
-
-This is like a v0.1-alpha version but it already handles all of the following...
 
 ## Why do we need this?
 
@@ -35,32 +33,46 @@ in the format expected by Netlify)
 
 Obsigo will do the following actions:
 
-### Frontmatter/Metadata/Filenames
+### Nicer directory and filename structure
+
+When using Obsigo, you don't have to use leaf nodes for everything and you don't have to name all your pages `index.md`.
+
+You can also rename your files around in Obsidian without worrying, not only because Obsidian updates the links but also 
+because Obsigo will detect the change and generate foreverlink redirects for you!
+
+- Converting obsidian `/xyz/pagename.md` to hugo `/xyz/pagename/index.md`
+- Converting obsidian `/xyz/leaf-node/leaf-node.md` to hugo `/xyz/leaf-node/index.md`
+- Automatically handle renamed files. If `/cat/oldname.md` becomes `/cat/newname.md`, obsigo will detect it because the
+  frontmatter `slug:` will still be `oldname`. At that point, obsigo will add `oldname` to the frontmatter `aliases:`
+  and will change he frontmatter `slug:` to `newname`. (This will, as any alias, 
+  generate a foreverlink from `*/oldname` to `/cat/newname`.
+- Automatically rename source files that were named `index.md` to `slug.md` so that your source files are easier to
+  identify in search results.
+
+
+### Frontmatter/Metadata processing
  
 - Cleanup/Remove unimportant keys from your FrontMatter YAML (IMPORTANT: these changes will be written back 
   to the source directory!)
-- Collect slugs & aliases from frontmatter `aliases:`, `slug:`, the filename`.md` or the folder_name`/index.md`
+- Collect slugs & aliases from frontmatter `aliases:`, `slug:`, the _filename_`.md` or the _folder_name_`/index.md`
   - Detect duplicates in the above!
   - Generate foreverlinks from the above and save them to a Netlify-compatible `_redirects` file
   - Also add additional customs redirects from `_redirects_base.txt` (if it exists)
-- Converting obsidian `/xyz/pagename.md` to hugo `/xyz/pagename/index.md`
-- Converting obsidian `/xyz/leaf-node/leaf-node.md` to hugo `/xyz/leaf-node/index.md`
 - Automatically add missing `slug:` to frontmatter (base on filename or foldername)
-- Automatically handle renamed files. If `/cat/oldname.md` becomes `/cat/newname.md`, obsigo will detect it because the
-  frontmatter `slug:` will still be `oldname`. At that point, obsigo will add `oldname` to the frontmatter `aliases:`
-  and will change he frontmatter `slug:` to `newname`. (This will, as any alias, generate a foreverlink from `*/oldname` to `/cat/newname`.
-- Automatically rename source files from `index.md` to `slug.md` so that your source files are easier to identify in search results.
 
-### Content
+### Content pre-processing
 
-- Convert Obsidian-style markup to Hugo-style:
-  - Convert single occurrences of ` # ` to `\# ` to prevent Hugo from interpreting it as a header
-  - Internal links:
-    - `.../xyz/index.md` -> `.../xyz/`
-    - `.../xyz/leaf-node/leaf-node.md` -> `.../xyz/leaf-node/`
-  - YouTube links:
-    - `![TED Talk](https://www.youtube.com/watch?v=M0yhHKWUa0g)` -> `{{< youtube M0yhHKWUa0g >}}`
-    - `![TED Talk](https://youtu.be/M0yhHKWUa0g)` -> `{{< youtube M0yhHKWUa0g >}}`
+- #hashtag linking: Convert all occurrences of `#some-hastag` to `[#hashtags](/tags/some-hashtag.md)`
+- Rendering bugfix: Convert single occurrences of ` # ` to `\# ` to prevent Hugo from interpreting it as a header
+- Internal links conversion:
+  - `.../xyz/index.md` -> `.../xyz/`
+  - `.../xyz/leaf-node/leaf-node.md` -> `.../xyz/leaf-node/`
+- YouTube: Use Hugo shortcode:
+  - `![TED Talk](https://www.youtube.com/watch?v=M0yhHKWUa0g)` -> `{{< youtube M0yhHKWUa0g >}}`
+  - `![TED Talk](https://youtu.be/M0yhHKWUa0g)` -> `{{< youtube M0yhHKWUa0g >}}`
+
+### Audit features
+
 - List all Markdown links found (for auditing)
 - List all HTML links found (for auditing)
   - Suggest Markdown equivalents (to be manually applied; useful for cleaning up legacy content)

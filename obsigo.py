@@ -11,7 +11,7 @@ import re
 
 import yaml
 
-print("Obsigo v0.5 - Preprocess Obsidian markdown files for Hugo")
+print("Obsigo v0.2 - Preprocess Obsidian markdown files for Hugo")
 
 # Process the frontmatter of the markdown file.
 # TODO: converts tags with spaces to tags with hyphens
@@ -197,6 +197,44 @@ def process_links(content, file_path):
             print(f"      - MD equiv: {markdown_link}")
             # replace in the content
             # content = content.replace(full_md_link, markdown_link)
+
+
+
+    # Find tags and make them links BUT only outside code spans and code blocks
+    # TODO: generalize this to all replacements
+
+    # Regex pattern to match code blocks and inline code spans
+    code_pattern = r'(```[\s\S]*?```|`[\s\S]*?`)'
+
+    # Find and store all code blocks and inline code spans
+    code_parts = re.findall(code_pattern, hugo_content, re.DOTALL)
+    print(f"  Found {len(code_parts)} code blocks or inline code spans." )
+
+    # Temporarily replace code blocks and inline code spans with placeholders
+    placeholder = "\0CODE\0"
+    hugo_content_protected = re.sub(code_pattern, placeholder, hugo_content)
+    print(hugo_content_protected)
+
+    # Now replace #tag outside code spans and code blocks
+    tags = re.findall(r'\s#(\w(\w|-)*)', hugo_content_protected)
+    if tags:
+        print(f"  Tags found in {file_path}:")
+        for tag, dummy in tags:
+            print(f"    - #{tag}")
+            # Make a link to the tag page
+            tag_link = f"[#{tag}](/tags/{tag}/)"
+            print(f"      - MD link: {tag_link}")
+            # replace in the content
+            hugo_content_protected = re.sub(rf"(\s)#{tag}", r"\1"+tag_link, hugo_content_protected)
+
+    # Restore the code blocks and inline code spans
+    if len(code_parts) > 0:
+        print(f"  Restoring {len(code_parts)} code blocks or inline code spans...")
+        for code_part in code_parts:
+            print("  Restoring code block or inline code span...: " + code_part)
+            hugo_content_protected = hugo_content_protected.replace(placeholder, code_part, 1)
+
+    hugo_content = hugo_content_protected
 
     return content, hugo_content
 
@@ -387,16 +425,18 @@ if __name__ == "__main__":
         # print(f"  {alias} -> {uri}")
     print(f"  Total aliases: {len(site_aliases_dict)}")
     # Write it to a netlify _redirects file:
-    with open( dest_redirects_file, 'w') as f:
-        for alias, uri in site_aliases_dict.items():
-            f.write(f"*/{alias} {uri} 301\n")
+    try:
+        with open( dest_redirects_file, 'w') as f:
+            for alias, uri in site_aliases_dict.items():
+                f.write(f"*/{alias} {uri} 301\n")
 
-        # Add the contents of ./static/_redirects_base.txt to this file:
-        if os.path.exists(src_redirects_base_file):
-            print(f"  Adding contents of {src_redirects_base_file} to {dest_redirects_file}")
-            with open(src_redirects_base_file, 'r') as base_file:
-                f.write(base_file.read())
-
+            # Add the contents of ./static/_redirects_base.txt to this file:
+            if os.path.exists(src_redirects_base_file):
+                print(f"  Adding contents of {src_redirects_base_file} to {dest_redirects_file}")
+                with open(src_redirects_base_file, 'r') as base_file:
+                    f.write(base_file.read())
+    except Exception as e:
+        print(f"ERROR writing redirects file: {e}")
 
     print("\nDone.")
 
