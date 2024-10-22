@@ -1,3 +1,6 @@
 /venv
 /.idea
 /.DS_Store
+/content
+content_src
+/test.py
