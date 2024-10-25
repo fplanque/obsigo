@@ -208,12 +208,12 @@ def process_links(content, file_path):
 
     # Find and store all code blocks and inline code spans
     code_parts = re.findall(code_pattern, hugo_content, re.DOTALL)
-    print(f"  Found {len(code_parts)} code blocks or inline code spans." )
+    # print(f"  Found {len(code_parts)} code blocks or inline code spans." )
 
     # Temporarily replace code blocks and inline code spans with placeholders
     placeholder = "\0CODE\0"
     hugo_content_protected = re.sub(code_pattern, placeholder, hugo_content)
-    print(hugo_content_protected)
+    # print(hugo_content_protected)
 
     # Now replace #tag outside code spans and code blocks
     tags = re.findall(r'\s#(\w(\w|-)*)', hugo_content_protected)
@@ -229,9 +229,9 @@ def process_links(content, file_path):
 
     # Restore the code blocks and inline code spans
     if len(code_parts) > 0:
-        print(f"  Restoring {len(code_parts)} code blocks or inline code spans...")
+        # print(f"  Restoring {len(code_parts)} code blocks or inline code spans...")
         for code_part in code_parts:
-            print("  Restoring code block or inline code span...: " + code_part)
+            # print("  Restoring code block or inline code span...: " + code_part)
             hugo_content_protected = hugo_content_protected.replace(placeholder, code_part, 1)
 
     hugo_content = hugo_content_protected
