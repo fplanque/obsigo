@@ -62,6 +62,10 @@ because Obsigo will detect the change and generate foreverlink redirects for you
 
 ### Content pre-processing
 
+- Integrate captions from image links: `![alt](image.jpg "discarded title")` "caption" -> `![alt](image.jpg "caption")`.
+  This is done so that captions are clearly seen when editing in Hugo.
+  This is also designed to be used in conjunction with a Hugo theme that supports image captions.
+  TODO: Try hugo's shortcode for figure https://gohugo.io/content-management/shortcodes/#figure
 - #hashtag linking: Convert all occurrences of `#some-hastag` to `[#hashtags](/tags/some-hashtag.md)`
 - Rendering bugfix: Convert single occurrences of ` # ` to `\# ` to prevent Hugo from interpreting it as a header
 - Internal links conversion:

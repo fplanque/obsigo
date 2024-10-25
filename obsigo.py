@@ -227,6 +227,23 @@ def process_links(content, file_path):
             # replace in the content
             hugo_content_protected = re.sub(rf"(\s)#{tag}", r"\1"+tag_link, hugo_content_protected)
 
+
+    # Now find markdown images like ![alt text](image.jpg "tile") "caption" and replace title with caption:
+    markdown_images = re.findall(r'(!\[(.*?)\]\((.*?)(\s*"(.*?)"\s*)?\) *?\s?"(.*?)")', hugo_content_protected)
+    if markdown_images:
+        print(f"  MD Images found in {file_path}:")
+        for match in markdown_images:
+            full_md_image, alt_text, image_url, extension, title_text, caption_text = match
+            print(f"    - {full_md_image}")
+            print(f"      - Alt text: {alt_text}")
+            print(f"      - Image URL: {image_url}")
+            print(f"      - Title text: {title_text}")
+            print(f"      - Caption text: {caption_text}")
+            # replace in the content
+            hugo_content_protected = hugo_content_protected.replace(full_md_image, f"![{alt_text}]({image_url} \"{caption_text}\")")
+
+
+
     # Restore the code blocks and inline code spans
     if len(code_parts) > 0:
         # print(f"  Restoring {len(code_parts)} code blocks or inline code spans...")
