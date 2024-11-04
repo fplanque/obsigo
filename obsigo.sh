@@ -16,3 +16,10 @@ python $script_path/obsigo.py
 
 # Deactivate python venv
 deactivate
+
+# check if any of the params is '-lhs'
+if [[ "$@" == *"-lhs"* ]]; then
+    echo
+    echo "Starting local hugo server..."
+    ./hugo server
+fi
