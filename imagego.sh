@@ -20,7 +20,10 @@ mark_processed() {
 # Find files and process xattr test separately
 find . -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.heic" \) -print0 | while IFS= read -r -d '' img; do
     # Skip if already processed, redirecting all output to /dev/null
-    xattr -p "$XATTR_NAME" "$img" >/dev/null 2>&1 && continue
+    if xattr -p "$XATTR_NAME" "$img" >/dev/null 2>&1; then
+        echo "Skipping, already processed: $img"
+        continue
+    fi
 
     temp="${img}.tmp"
 
