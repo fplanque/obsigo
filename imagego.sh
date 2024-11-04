@@ -5,6 +5,9 @@
 SRGB_PROFILE="/System/Library/ColorSync/Profiles/sRGB Profile.icc"
 XATTR_NAME="user.srgb_converted"
 
+# Parse arguments
+SEARCH_PATH="${1:-.}"  # Use first argument if provided, otherwise use current directory
+
 # Function to check if image is already sRGB
 check_colorspace() {
     profile=$(magick identify -format "%[profile:icc]\n" "$1")
@@ -17,8 +20,14 @@ mark_processed() {
     xattr -w "$XATTR_NAME" "1" "$1" >/dev/null
 }
 
+# Validate search path
+if [[ ! -d "$SEARCH_PATH" ]]; then
+    echo "Error: Directory '$SEARCH_PATH' does not exist"
+    exit 1
+fi
+
 # Find files and process xattr test separately
-find . -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.heic" \) -print0 | while IFS= read -r -d '' img; do
+find "$SEARCH_PATH" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.heic" \) -print0 | while IFS= read -r -d '' img; do
     # Skip if already processed, redirecting all output to /dev/null
     if xattr -p "$XATTR_NAME" "$img" >/dev/null 2>&1; then
         echo "Skipping, already processed: $img"
