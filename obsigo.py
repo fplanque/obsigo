@@ -271,8 +271,19 @@ def process_links(content, file_path):
             print(f"      - Image URL: {image_url}")
             print(f"      - Title text: {title_text}")
             print(f"      - Caption text: {caption_text}")
-            # replace in the content
-            hugo_content_protected = hugo_content_protected.replace(full_md_image, f"![{alt_text}]({image_url} \"{caption_text}\")")
+            # If caption text is not present, use the title text
+            if caption_text == '':
+                caption_text = title_text
+            # Check if it's an heic image and convert to jpg
+            if image_url.endswith('.heic'):
+                image_url = re.sub(r'\.heic$', '.jpeg', image_url)
+                print(f"      - Converting heic to jpg: {image_url}")
+
+            # replace in the content, only write caption is we have one:
+            if caption_text == '':
+                hugo_content_protected = hugo_content_protected.replace(full_md_image, f"![{alt_text}]({image_url})")
+            else:
+                hugo_content_protected = hugo_content_protected.replace(full_md_image, f"![{alt_text}]({image_url} \"{caption_text}\")")
 
 
 
