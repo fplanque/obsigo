@@ -143,6 +143,38 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
                 print(f"  Added alias {alias}->{canonical_uri} to the dictionary.")
                 stats_dict['foreverlinks_collected'] += 1
 
+
+    # ---
+    # Clean up tags:
+    # Convert tags with spaces to tags with hyphens
+    if 'tags' in src_metadata:
+        tags = src_metadata['tags']
+        if tags is not None:
+            for i, tag in enumerate(tags):
+                # Convert tags with spaces to tags with hyphens
+                if ' ' in tag:
+                    print(f"    TAGS: Converting tag '{tag}' to '{tag.replace(' ', '-')}'")
+                    tags[i] = tag.replace(' ', '-')
+                    source_changed = True
+                # Remove `#` character from tags
+                if '#' in tag:
+                    print(f"    TAGS: Removing '#' from tag '{tag}'")
+                    tags[i] = tag.replace('#', '')
+                    source_changed = True
+            src_metadata['tags'] = tags
+
+
+    # ---
+    # If the cover image is a HEIC file, convert it to a JPG file
+    if 'cover' in src_metadata:
+        cover = src_metadata['cover']['image']
+        if cover is not None:
+            if cover.endswith('.heic'):
+                print(f"    COVER: Converting cover image '{cover}' to JPEG")
+                src_metadata['cover']['image'] = re.sub(r'\.heic$', '.jpeg', cover)
+                source_changed = True
+
+
     return source_changed
 
 
