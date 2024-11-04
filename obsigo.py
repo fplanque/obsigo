@@ -18,10 +18,12 @@ print("Obsigo v0.2 - Preprocess Obsidian markdown files for Hugo")
 def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_aliases_dict, stats_dict ):
     source_changed = False      # Source data has not changed yet
 
+    print("  FRONTMATTER:")
+
     # Cleanup/Remove unimportant keys:
     for key in unimportant_frontmatter_keys:
         if key in src_metadata:
-            print(f"  Cleanup: Removing key from source '{key}: {src_metadata[key]}")
+            print(f"    CLEANUP: Removing unimportant key from source '{key}: {src_metadata[key]}")
             del src_metadata[key]
             source_changed = True
             stats_dict['frontmatter_source_cleanups'] += 1
@@ -29,7 +31,7 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
 
     # Remove 'visibility' key if its value is 'published'
     if 'visibility' in src_metadata and src_metadata['visibility'] == 'published':
-        print(f"  Cleanup: Removing key 'visibility': {src_metadata['visibility']}")
+        print(f"    CLEANUP: Removing key 'visibility': {src_metadata['visibility']}")
         del src_metadata['visibility']
         source_changed = True
         stats_dict['frontmatter_source_cleanups'] += 1
@@ -55,7 +57,7 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
 
     # Also add the last directory of the file path (not the filename) as an alias
     split_path = rel_src_filepath.split('/')
-    print( f"  Split path: {split_path} {len(split_path)}")
+    # print( f"  Split path: {split_path} {len(split_path)}")
     if split_path[-1] == 'index.md' or split_path[-1] == '_index.md':
         # We are in a sub directory if we have a parent:
         if len(split_path) >= 2:
@@ -63,7 +65,7 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
             main_slug = split_path[-2]
             post_collected_aliases.append(main_slug)
             stats_dict['slugs_collected'] += 1
-            print(f"  CONTENT SUBDIR - Adding last directory '{main_slug}' as an alias.")
+            print(f"    CONTENT SUBDIR - Adding last directory '{main_slug}' as an alias.")
         else:
             # no parent
             main_slug = None
@@ -75,22 +77,22 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
         main_slug = re.sub(r'\.md$', '', split_path[-1])
         post_collected_aliases.append(main_slug)
         stats_dict['slugs_collected'] += 1
-        print(f"  NAMED MD - Adding last directory '{main_slug}' as an alias.")
+        print(f"    NAMED MD - Adding last directory '{main_slug}' as an alias.")
 
-    print(f"  Main slug: {main_slug}" )
-    print(f"  Collected Aliases: {post_collected_aliases}")
+    print(f"    SLUG: Main slug: {main_slug}" )
+    print(f"    ALIASES: Collected Aliases: {post_collected_aliases}")
 
     # --
 
     # Fix 'slug:' in source if necessary:
     if main_slug is None:
         # root _index.md, do nothing
-        print( "    Home page, no slug needed.")
+        print( "      Home page, no slug needed.")
         pass
 
     elif 'slug' not in src_metadata:
         # No 'slug', let's add it:
-        print(f"    Adding missing slug to source: '{main_slug}'")
+        print(f"      Adding missing slug to source: '{main_slug}'")
         src_metadata['slug'] = main_slug
         source_changed = True
         stats_dict['missing_slugs_fixed'] += 1
@@ -99,7 +101,7 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
         # Also add the slug as an alias if it's different from the main slug extracted from the file path
         # DIVERGENT slug found!
         # We need to roll the slugs:
-        print(f"    Divergent slugs found: '{src_metadata['slug']}' != '{main_slug}'")
+        print(f"      Divergent slugs found: '{src_metadata['slug']}' != '{main_slug}'")
         # Old slug must become an alias:
         post_collected_aliases.append(src_metadata['slug'])
         stats_dict['divergent_slugs_fixed'] += 1    # Old slug becomes an alias and filename becomes new slug
@@ -137,10 +139,10 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
             stats_dict['foreverlinks_conflicts_detected'] += 1
         else:
             if draft:
-                print(f"  NOT ADDING alias {alias}->{canonical_uri} because it's a draft.")
+                print(f"    NOT ADDING alias {alias}->{canonical_uri} because it's a draft.")
             else:
                 site_aliases_dict[alias] = canonical_uri
-                print(f"  Added alias {alias}->{canonical_uri} to the dictionary.")
+                print(f"    Added alias {alias}->{canonical_uri} to the dictionary.")
                 stats_dict['foreverlinks_collected'] += 1
 
 
@@ -195,8 +197,9 @@ def process_links(content, file_path):
             if full_md_link.startswith('!') and ('youtube.com/watch' in link_url or 'youtu.be/' in link_url):
                 youtube_id = re.findall(r'(?:https?://(?:www\.)?youtube\.com/watch\?v=|https?://youtu\.be/)([\w-]+)', link_url)
                 if youtube_id:
+                    # Convert the YouTube link to a Hugo shortcode https://gohugo.io/content-management/shortcodes/#youtube
                     hugo_tag = f'{{{{< youtube {youtube_id[0]} >}}}}'
-                    print(f"      - Converting YouTube link to Hugo tag: {hugo_tag}")
+                    print(f"      - Converting YouTube link to Hugo shortcode: {hugo_tag}")
                     hugo_content = hugo_content.replace(full_md_link, hugo_tag)
                     stats_dict['youtube_links_converted'] += 1
 
@@ -261,14 +264,14 @@ def process_links(content, file_path):
 
 
     # Now find markdown images like ![alt text](image.jpg "tile") "caption" and replace title with caption:
-    markdown_images = re.findall(r'(!\[(.*?)\]\((.*?)(\s*"(.*?)"\s*)?\) *?\s?"(.*?)")', hugo_content_protected)
+    # TODO: https://gohugo.io/content-management/shortcodes/#figure
+    markdown_images = re.findall(r'(!\[(.*?)\]\((.*?)(\s*"(.*?)"\s*)?\)( *?\s *?"(.*?)")?)', hugo_content_protected)
     if markdown_images:
         print(f"  MD Images found in {file_path}:")
         for match in markdown_images:
-            full_md_image, alt_text, image_url, extension, title_text, caption_text = match
-            print(f"    - {full_md_image}")
+            full_md_image, alt_text, image_url, extension, title_text, dummy, caption_text = match
+            print(f"    - Image URL: {image_url}")
             print(f"      - Alt text: {alt_text}")
-            print(f"      - Image URL: {image_url}")
             print(f"      - Title text: {title_text}")
             print(f"      - Caption text: {caption_text}")
             # If caption text is not present, use the title text
@@ -406,15 +409,19 @@ def process_directory(source_directory, destination_directory, site_aliases_dict
         print(f"Processing directory: {root} ... ")
 
         if cur_dirname == '_assets':
-            # Copy the _assets directory to the destination
+            # Copy the _assets (images) directory to the destination
             source_assets_path = root
             relative_assets_path = os.path.relpath(source_assets_path, source_directory)
             dest_assets_path = os.path.join(destination_directory, relative_assets_path)
 
             if not os.path.exists(dest_assets_path):
+                # CHECK: why do we check if it exists? When does it already exist?
                 print()
                 print(f" Copying _assets directory from {source_assets_path} to {dest_assets_path}")
                 shutil.copytree(source_assets_path, dest_assets_path)
+                # TODO: Convert images that are not sRGB to sRGB
+
+
 
             continue
 
@@ -457,7 +464,10 @@ if __name__ == "__main__":
 
     # Ensure the destination directory is empty
     if os.path.exists(destination_directory):
+        print(f"Emptying destination directory: '{destination_directory}'.")
         shutil.rmtree(destination_directory)
+    else:
+        print(f"Creating destination directory: '{destination_directory}'.")
     os.makedirs(destination_directory)
 
 
