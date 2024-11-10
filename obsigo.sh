@@ -14,6 +14,16 @@ source $script_path/venv/bin/activate
 # Run the python script and pass any arguments
 python $script_path/obsigo.py "$@"
 
+# Store the exit code
+exit_code=$?
+
+# Check if python script failed
+if [ $exit_code -ne 0 ]; then
+    echo "Error: obsigo.py failed with exit code $exit_code"
+    deactivate  # Make sure to deactivate venv before exiting
+    exit $exit_code
+fi
+
 # Deactivate python venv
 deactivate
 
