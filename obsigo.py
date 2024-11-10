@@ -438,6 +438,15 @@ def process_directory(source_directory, destination_directory, site_aliases_dict
 
 if __name__ == "__main__":
 
+    # Use a library to get command line options
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Preprocess Obsidian markdown files for Hugo')
+    parser.add_argument('-k', '--keep', action='store_true', help='Keep the destination directory')
+    parser.add_argument('-i', action='store_true', help='Process images in the destination directory')
+    parser.add_argument('-lhs', action='store_true', help='Start a Local Hugo Server after processing')
+    args = parser.parse_args()
+
     # Load config
     config_file = "./obsigo.yaml"
     if not os.path.exists(config_file):

@@ -11,8 +11,8 @@ echo "Current working directory: $(pwd)"
 # Activate python venv
 source $script_path/venv/bin/activate
 
-# Run the python script
-python $script_path/obsigo.py
+# Run the python script and pass any arguments
+python $script_path/obsigo.py "$@"
 
 # Deactivate python venv
 deactivate
