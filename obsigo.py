@@ -168,11 +168,18 @@ def process_frontmatter(src_metadata, rel_src_filepath, rel_dest_filepath, site_
 
     # ---
     # If the cover image is a HEIC file, convert it to a JPG file
+    if 'cover_img' in src_metadata:
+        cover_img = src_metadata['cover_img']
+        if cover_img is not None:
+            if cover_img.endswith('.heic'):
+                print(f"    COVER: Converting cover_img:'{cover_img}' to JPEG")
+                src_metadata['cover_img'] = re.sub(r'\.heic$', '.jpeg', cover_img)
+                source_changed = True
     if 'cover' in src_metadata:
         cover = src_metadata['cover']['image']
         if cover is not None:
             if cover.endswith('.heic'):
-                print(f"    COVER: Converting cover image '{cover}' to JPEG")
+                print(f"    COVER: Converting cover.image:'{cover}' to JPEG")
                 src_metadata['cover']['image'] = re.sub(r'\.heic$', '.jpeg', cover)
                 source_changed = True
 
