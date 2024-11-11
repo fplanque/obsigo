@@ -39,5 +39,5 @@ fi
 if [[ "$@" == *"-lhs"* ]]; then
     echo
     echo "Starting local hugo server..."
-    ./hugo server
+    ./hugo134-3 server
 fi
