@@ -296,6 +296,10 @@ def process_links(content, file_path):
                 hugo_content_protected = hugo_content_protected.replace(full_md_image, f"![{alt_text}]({image_url} \"{caption_text}\")")
 
 
+    # Now find ==highlighted text== and replace with <mark>highlighted text</mark> (non-greedy)
+    # This can actually be done by Goldmark in Hugo but we do it here for consistency with Obsidian which
+    # accepts a space before the closing ==
+    hugo_content_protected = re.sub(r'==(\w.*?)==', r'<mark>\1</mark>', hugo_content_protected)
 
     # Restore the code blocks and inline code spans
     if len(code_parts) > 0:
