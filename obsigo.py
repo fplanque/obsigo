@@ -461,7 +461,8 @@ if __name__ == "__main__":
     dest_redirects_file = config['dest_redirects_file']
     unimportant_frontmatter_keys = config['unimportant_frontmatter_keys']
 
-
+    with open("./obsigo_dest.txt", "w") as f:
+        f.write(destination_directory)
 
 
     site_aliases_dict = {}

@@ -27,6 +27,14 @@ fi
 # Deactivate python venv
 deactivate
 
+# check if any of the params is '-i' for imagego:
+if [[ "$@" == *"-i"* ]]; then
+    echo
+    OBSIGO_DEST=$(cat ./obsigo_dest.txt)
+    echo "Running imagego on $OBSIGO_DEST"
+    $script_path/imagego.sh "$OBSIGO_DEST"
+fi
+
 # check if any of the params is '-lhs'
 if [[ "$@" == *"-lhs"* ]]; then
     echo
