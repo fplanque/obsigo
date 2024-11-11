@@ -474,11 +474,15 @@ if __name__ == "__main__":
 
     # Ensure the destination directory is empty
     if os.path.exists(destination_directory):
-        print(f"Emptying destination directory: '{destination_directory}'.")
-        shutil.rmtree(destination_directory)
+        # Check if we got the -k or --keep argument
+        if args.keep:
+            print(f"Keeping destination directory: '{destination_directory}'.")
+        else:
+            print(f"Emptying destination directory: '{destination_directory}'.")
+            shutil.rmtree(destination_directory)
     else:
         print(f"Creating destination directory: '{destination_directory}'.")
-    os.makedirs(destination_directory)
+        os.makedirs(destination_directory)
 
 
     stats_dict = {
