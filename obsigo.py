@@ -425,13 +425,44 @@ def process_directory(source_directory, destination_directory, site_aliases_dict
             relative_assets_path = os.path.relpath(source_assets_path, source_directory)
             dest_assets_path = os.path.join(destination_directory, relative_assets_path)
 
-            if not os.path.exists(dest_assets_path):
-                # CHECK: why do we check if it exists? When does it already exist?
-                print()
-                print(f" Copying _assets directory from {source_assets_path} to {dest_assets_path}")
-                shutil.copytree(source_assets_path, dest_assets_path)
-                # TODO: Convert images that are not sRGB to sRGB
+            # if not os.path.exists(dest_assets_path):
+            # CHECK: why do we check if it exists? When does it already exist?
 
+            print()
+            print(f" Copying _assets directory from {source_assets_path} to {dest_assets_path}")
+            # shutil.copytree(source_assets_path, dest_assets_path)
+            # Copy any new or more recent files but don't overwrite files that are newer in the destination
+            # shutil.copytree(source_assets_path, dest_assets_path, dirs_exist_ok=True)
+
+            os.makedirs(dest_assets_path, exist_ok=True)
+
+            for filename in os.listdir(source_assets_path):
+                print(f"  - File: {filename} :", end="")
+                src_file = os.path.join(source_assets_path, filename)
+                dst_file = os.path.join(dest_assets_path, filename)
+                dst_check_file = dst_file
+
+                # Remove destination file first to clear old xattr
+                # if os.path.exists(dst_file):
+                #     os.remove(dst_file)
+                # # Copy the file
+                # shutil.copy2(src_file, dst_file)
+
+                # If its an .heic file, the destination check must be on the .jpeg file
+                if filename.endswith('.heic'):
+                    print(" HEIC file, checked against JPEG equivalent:", end="")
+                    dst_check_file = re.sub(r'\.heic$', '.jpeg', dst_file)
+
+                # Copy if destination doesn't exist or source is newer
+                if not os.path.exists(dst_check_file):
+                    print(" New file.")
+                    shutil.copy2(src_file, dst_file)
+                elif os.path.getmtime(src_file) > os.path.getmtime(dst_check_file):
+                    print(" Updated file.")
+                    os.remove(dst_check_file)   # Remove in order to remove Xattr
+                    shutil.copy2(src_file, dst_file)
+                else:
+                    print(" Unchanged file.")
 
 
             continue
